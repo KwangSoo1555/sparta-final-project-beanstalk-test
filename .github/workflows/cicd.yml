@@ -71,7 +71,7 @@ jobs:
 
       # Download .env from S3
       - name: Download .env from S3
-        run: node downloadFromS3.js
+        run: node download-env-from-s3.js
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
