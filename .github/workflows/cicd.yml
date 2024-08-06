@@ -23,7 +23,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
-      # Download AWS CLI 2
+      # Install AWS CLI 2
       - name: Install AWS CLI 2
         run: |
           curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -39,14 +39,15 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-2
 
+      # Prebuild
+      - name: Prebuild
+        run: npm run prebuild
+
       # npm install for ci
       - run: npm ci
 
       # Build
       - run: npm run build
-
-      # Unit test
-    #   - run: npm run test:unit
 
   deploy:
     name: BeanStalk Deploy
@@ -83,6 +84,10 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-2
+          
+      # Prebuild
+      - name: Prebuild
+        run: npm run prebuild
 
       # Build
       - name: Run build
@@ -98,7 +103,7 @@ jobs:
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          application_name: ${{ secrets.APPLICATION_NAME }}
-          environment_name: ${{ secrets.ENVIRONMENT_NAME }}
+          application_name: ${{ secrets.AWS_EB_APPLICATION_NAME }}
+          environment_name: ${{ secrets.AWS_EB_ENVIRONMENT_NAME }}
           region: ap-northeast-2
           version_label: ${{ github.SHA }}
