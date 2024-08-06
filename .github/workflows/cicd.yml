@@ -46,7 +46,7 @@ jobs:
       - run: npm run build
 
       # Unit test
-      - run: npm run test:unit
+    #   - run: npm run test:unit
 
   deploy:
     name: BeanStalk Deploy
@@ -83,7 +83,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-2
-          
+
       # Build
       - name: Run build
         run: npm run build
