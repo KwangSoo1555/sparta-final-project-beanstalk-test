@@ -21,7 +21,7 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          cache: "npm"
 
       # Install AWS CLI 2
       - name: Install AWS CLI 2
@@ -30,7 +30,7 @@ jobs:
           unzip awscliv2.zip
           which aws
           sudo ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update
-          
+
       # Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -41,7 +41,7 @@ jobs:
 
       # npm install for ci
       - run: npm ci
-          
+
       # Prebuild
       - name: Prebuild
         run: npm run prebuild
@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: ['18.x']
+        node-version: ["18.x"]
     needs: build
     steps:
       - uses: actions/checkout@v2
@@ -91,7 +91,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-2
-          
+
       # Prebuild
       - name: Prebuild
         run: npm run prebuild
@@ -100,9 +100,18 @@ jobs:
       - name: Run build
         run: npm run build
 
+      # List files before generating the zip
+      - name: List files before zipping
+        run: ls -la
+
       # Generate deployment package
       - name: Generate deployment package
-        run: zip -r deploy.zip . -x '*.git*' './aws/*' './node_modules/*' './dist/*' awscliv2.zip
+        run: |
+          zip -r deploy.zip . -x '*.git*' './aws/*' './node_modules/*' './dist/*' awscliv2.zip
+
+      # List files after generating the zip
+      - name: List files after zipping
+        run: ls -la
 
       # Deploy to Elastic Beanstalk
       - name: Deploy to EB
