@@ -100,7 +100,7 @@ jobs:
       - name: Run build
         run: npm run build
 
-      # Make upload zip file
+      # Generate deployment package
       - name: Generate deployment package
         run: zip -r deploy.zip . -x '*.git*' './aws/*' './node_modules/*' './dist/*' awscliv2.zip
 
@@ -113,4 +113,4 @@ jobs:
           application_name: ${{ secrets.AWS_EB_APPLICATION_NAME }}
           environment_name: ${{ secrets.AWS_EB_ENVIRONMENT_NAME }}
           region: ap-northeast-2
-          version_label: ${{ github.SHA }}
+          version_label: ${{ github.sha }}
