@@ -7,102 +7,32 @@ on:
     types: [opened, reopened, synchronize]
     branches: [main]
 
+  workflow_dispatch:
+
 jobs:
   build:
-    name: Build and Test
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [20.x]
+    runs-on: ubuntu-latest # action이 구동될 OS 환경을 세팅해준다.
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v2
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up Node # action이 구동될 Node 환경을 세팅해준다.
+        uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: "npm"
+          node-version: 16.x
 
-      # Install AWS CLI 2
-      - name: Install AWS CLI 2
-        run: |
-          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-          unzip awscliv2.zip
-          which aws
-          sudo ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update
-
-      # Configure AWS credentials
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-northeast-2
-
-      # npm install for ci
-      - run: npm ci
-
-      # Prebuild
-      - name: Prebuild
-        run: npm run prebuild
-
-      # Build
-      - run: npm run build
-
-  deploy:
-    name: BeanStalk Deploy
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: ["20.x"]
-    needs: build
-    steps:
-      - uses: actions/checkout@v2
-
-      # Initialize Node.js
-      - name: Install Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
-
-      # Install project dependencies
-      - name: Install dependencies
+      - name: npm install # package.json에 있는 의존성 파일들을 설치해준다.
+        working-directory: ./WEB(BE)
         run: npm install
 
-      # Download .env from S3
-      - name: Download .env from S3
-        run: node download-env-from-s3.js
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: npm compile with babel # babel을 이용하여 es5로의 컴파일을 진행해준다.
+        working-directory: ./WEB(BE)
+        run: npm run compile # npx babel src --out-dir dist(실제 실행되는 명령어)
 
-      # Download AWS CLI 2
-      - name: Install AWS CLI 2
-        run: |
-          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-          unzip awscliv2.zip
-          which aws
-          sudo ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update
-
-      # Configure AWS credentials
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-northeast-2
-
-      # Prebuild
-      - name: Prebuild
-        run: npm run prebuild
-
-      # Build
-      - name: Run build
-        run: npm run build
-
-      # Generate deployment package
-      - name: Generate deployment package
-        run: zip -r deploy.zip . -x '*.git*' './aws/*' './node_modules/*' './dist/*' awscliv2.zip
+      - name: make zip file # 압축 파일을 만들어준다.
+        working-directory: ./WEB(BE)
+        run: zip -r app.zip package.json ./dist
 
       # Deploy to Elastic Beanstalk
       - name: Deploy to EB
@@ -115,4 +45,4 @@ jobs:
           version_label: ${{ github.run_number }}
           use_existing_version_if_available: true
           region: ap-northeast-2
-          deployment_package: deploy.zip
+          deployment_package: ./WEB(BE)/app.zip
