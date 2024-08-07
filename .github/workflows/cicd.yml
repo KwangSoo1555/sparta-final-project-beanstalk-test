@@ -37,7 +37,6 @@ jobs:
 
       # Install dependencies
       - name: Install dependencies
-        if: steps.node-cache.outputs.cache-hit != 'true'
         run: npm install
 
       # Run build
