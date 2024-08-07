@@ -20,7 +20,7 @@ jobs:
       - name: Set up Node # action이 구동될 Node 환경을 세팅해준다.
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 20.x
 
       - name: npm install # package.json에 있는 의존성 파일들을 설치해준다.
         run: npm install
